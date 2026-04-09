@@ -14,14 +14,13 @@ with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.cs
     x = 0
     for row in reader:
         if 1 < x:
-            msgs.append(email.message_from_string(f'''From: {row[0]}
+            msgs.append({'eml':email.message_from_string(f'''From: {row[0]}
 To: {row[1]}
 Subject: {row[3]}
 Date: {row[2]}
-{row[4]}'''))
+{row[4]}'''
+            ),'lbl':row[5]})
         x += 1
-
-print(msgs[0])
 
 
 # ALGORITHMIC ASSESSMENT ===========================
