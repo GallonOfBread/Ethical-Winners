@@ -7,7 +7,7 @@ def assess(msgs):
         # Actually assess the email based on msg['eml']
         if msg['lbl'] == '1':
             msgs[i]['alg'] = 100
-            msgs[i]['alg-reason'] = "We say this is spam."
+            msgs[i]['alg-reason'] = "We say this is phishing."
         else:
             msgs[i]['alg'] = 0
             msgs[i]['alg-reason'] = "We say this is real."
@@ -39,4 +39,8 @@ Date: {row[2]}
     
     for i, msg in enumerate(msgs):
         if i < 20:
-            print(msg['alg'])
+            print(str(msg['alg']) + "%", msg['alg-reason'])
+            print(msg['eml']["Subject"] or "(no subject)")
+            body = (msg['eml'].get_payload() or "").strip()
+            print(body[:80] + "..." if len(body) > 80 else body)
+            print()

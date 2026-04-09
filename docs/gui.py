@@ -64,7 +64,7 @@ def load_gui(msgs):
         from_display = f"{name} &lt;{addr}&gt;" if name else addr
         subject  = html.escape(msg['eml']["Subject"] or "(no subject)")
         date     = html.escape(msg['eml']["Date"] or "")
-        body_escaped = html.escape((msg['eml'].get_payload() or "").strip())
+        body     = html.escape((msg['eml'].get_payload() or "").strip())
 
         alg_score = msg.get('alg')
         llm_score = msg.get('llm')
@@ -93,4 +93,4 @@ def load_gui(msgs):
 
         # Scrollable body
         with st.container(height=500):
-            st.markdown(f"<div class='email-body'>{body_escaped}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='email-body'>{body}</div>", unsafe_allow_html=True)
