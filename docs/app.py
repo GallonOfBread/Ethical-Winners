@@ -6,7 +6,7 @@ import alg, llm, gui
 # https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset
 msgs = []
 
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.csv'), newline='', mode='r') as file:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.csv'), newline='', mode='r', encoding='utf-8') as file:
     # DictReader automatically uses the first row as headers
     reader = csv.reader(file)
 
