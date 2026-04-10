@@ -1,5 +1,6 @@
 import streamlit as st
 import email, html
+import llm
 from email.utils import parseaddr
 
 def score_color(score):
@@ -90,6 +91,16 @@ def load_gui(msgs):
         st.markdown(scores_html, unsafe_allow_html=True)
 
         st.markdown("<hr class='email-divider'>", unsafe_allow_html=True)
+
+        # AI scan button
+        if st.button("🔍 Scan with Llama 3.2", use_container_width=True):
+            with st.spinner("Ollama is analyzing the message..."):
+                # This calls the single-assessment function we'll add to llm.py
+                score, reason = llm.analyze_single(msg)
+                msg['llm'] = score
+                msg['llm-reason'] = reason
+                st.rerun()
+        #####
 
         # Scrollable body
         with st.container(height=500):

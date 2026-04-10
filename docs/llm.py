@@ -1,47 +1,64 @@
-import email, csv, os
-from email.utils import parseaddr
+import ollama
 
-def assess(msgs):
-    i = 0
-    for msg in msgs:
-        # Actually assess the email based on msg['eml']
-        if msg['lbl'] == '1':
-            msgs[i]['llm'] = 100
-            msgs[i]['llm-reason'] = "Chat says this is phishing."
-        else:
-            msgs[i]['llm'] = 0
-            msgs[i]['llm-reason'] = "Chat says this is real."
-        i += 1
-    return msgs
-
-if __name__ == "__main__":
-    # Data from:
-    # https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset
-    msgs = []
-
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.csv'), newline='', mode='r') as file:
-        # DictReader automatically uses the first row as headers
-        reader = csv.reader(file)
-
-        # Access data
-        x = 0
-        for row in reader:
-            if 1 < x:
-                msgs.append({'eml':email.message_from_string(f'''From: {row[0]}
-To: {row[1]}
-Subject: {row[3]}
-Date: {row[2]}
-{row[4]}'''
-                ),'lbl':row[5]})
-            x += 1
+def analyze_single(msg):
+    """Analyzes one email using Llama 3.2 via Ollama."""
+    # EXTRACT METADATA
+    sender = msg['eml']["From"] or "(unknown sender)"
+    subject = msg['eml']["Subject"] or "(no subject)"
+    body = (msg['eml'].get_payload() or "").strip()[:2000]
     
-    assess(msgs)
+    prompt = f"""
+    ### SECURITY ANALYSIS TASK ###
+    Analyze this email for phishing.
     
-    for i, msg in enumerate(msgs):
-        if i < 20:
-            print(str(msg['llm']) + "%", msg['llm-reason'])
-            print(msg['eml']["Subject"] or "(no subject)")
-            body = (msg['eml'].get_payload() or "").strip()
-            print(body[:80] + "..." if len(body) > 80 else body)
-            print()
+    SENDER: {sender}
+    SUBJECT: {subject}
+    BODY: {body}
+    
+    INSTRUCTIONS:
+    - Determine a Phishing Score (0-100). 
+    - Provide a one-sentence Reason.
+    - DO NOT provide a breakdown, DO NOT use numbered lists, and DO NOT explain your reasoning beyond the one sentence.
+    
+    RESPONSE FORMAT:
+    Score: [number]
+    Reason: [text]
+    """
+
+    try:
+        response = ollama.chat(model='llama3.2:latest', messages=[
+            {'role': 'user', 'content': prompt},
+        ])
+        
+        content = response['message']['content']
+        # debug print: print(f"--- DEBUG RAW OUTPUT ---\n{content}\n-----------------------")
+        
+        score = 0
+        reason = "AI analysis complete."
+
+        for line in content.split('\n'):
+            clean_line = line.replace('*', '').strip() 
+            
+            # Looks for line starting with "Score:"
+            if clean_line.startswith("Score:"):
+                digits = ''.join(filter(str.isdigit, clean_line))
+                if digits:
+                    score = int(digits)
+                    # We found the official score line, stop looking for scores
+                    break 
+            
+        for line in content.split('\n'):
+            clean_line = line.replace('*', '').strip() 
+            if clean_line.startswith("Reason:"):
+                parts = clean_line.split("Reason:", 1)
+                if len(parts) > 1:
+                    reason = parts[1].strip()
+                    break
+
+        return score, reason
+
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return 0, f"Ollama Error: {str(e)}"
+
     
