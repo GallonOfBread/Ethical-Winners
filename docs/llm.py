@@ -18,11 +18,13 @@ def analyze_single(msg):
     INSTRUCTIONS:
     - Determine a Phishing Score (0-100). 
     - Provide a one-sentence Reason.
-    - DO NOT provide a breakdown, DO NOT use numbered lists, and DO NOT explain your reasoning beyond the one sentence.
+    - Provide a recommended Action
+    - DO NOT provide a breakdown, DO NOT use numbered lists.
     
     RESPONSE FORMAT:
     Score: [number]
     Reason: [text]
+    Action: [text]
     """
 
     try:
@@ -35,6 +37,7 @@ def analyze_single(msg):
         
         score = 0
         reason = "AI analysis complete."
+        action = ""
 
         for line in content.split('\n'):
             clean_line = line.replace('*', '').strip() 
@@ -55,7 +58,20 @@ def analyze_single(msg):
                     reason = parts[1].strip()
                     break
 
-        return score, reason
+        for line in content.split('\n'):
+            clean_line = line.replace('*', '').strip() 
+            if clean_line.startswith("Action:"):
+                parts = clean_line.split("Action:", 1)
+                if len(parts) > 1:
+                    action = parts[1].strip()
+                    break
+
+        # Combine reason and action
+        combined = reason
+        if action:
+            combined = f"{reason}\n\n→ {action}"
+
+        return score, combined
 
     except Exception as e:
         print(f"ERROR: {e}")
