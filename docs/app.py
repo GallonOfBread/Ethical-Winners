@@ -27,13 +27,13 @@ Date: {row[2]}
             x += 1
 
     # ALGORITHMIC ASSESSMENT ===========================
-    # Define the path to your dataset
+    # Define the path to the dataset
     dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.csv')
     
     # Train the statistical model (happens instantly)
     vectorizer, model = alg.train_model(dataset_path)
     
-    # Pass the vectorizer and model into the assess function
+    # Calls the assess function of alg.py with the messages, vectorizer, and model as parameters
     alg.assess(msgs, vectorizer, model)
     
     # Save the list so it persists during the LLM scan reruns
