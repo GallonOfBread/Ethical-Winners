@@ -1,17 +1,59 @@
 import email, csv, os
 from email.utils import parseaddr
 
-def assess(msgs):
-    i = 0
+import email, csv, os
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+
+def train_model(dataset_path):
+    # This trains a fast statistical model on startup
+    texts = []
+    labels = []
+    
+    with open(dataset_path, newline='', mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file)
+        
+        x = 0
+        for row in reader:
+            if x > 1: # Skip the first two rows (Dataset tag and Column Headers)
+                # Combine subject and body for training
+                texts.append(str(row[3]) + " " + str(row[4]))
+                labels.append(int(row[5])) # The ground truth label
+            x += 1
+            
+    vectorizer = TfidfVectorizer(max_features=3000, stop_words='english')
+    X = vectorizer.fit_transform(texts)
+    
+    model = MultinomialNB()
+    model.fit(X, labels)
+    
+    return vectorizer, model
+
+def assess(msgs, vectorizer, model):
     for msg in msgs:
-        # Actually assess the email based on msg['eml']
-        if msg['lbl'] == '1':
-            msgs[i]['alg'] = 100
-            msgs[i]['alg-reason'] = "We say this is phishing."
+        eml = msg['eml']
+        subject = str(eml['Subject']) if eml['Subject'] else ""
+        body = str(eml.get_payload())
+        combined_text = subject + " " + body
+        
+        # Transform the single email into a statistical vector
+        X_new = vectorizer.transform([combined_text])
+        
+        # Get the probability that this is phishing (Class 1)
+        probability = model.predict_proba(X_new)[0][1] 
+        
+        score = int(probability * 100)
+        
+        if score > 75:
+            reason = "Statistical analysis indicates high similarity to known phishing patterns."
+        elif score > 25:
+            reason = "Statistical analysis detected ambiguous or risky language patterns."
         else:
-            msgs[i]['alg'] = 0
-            msgs[i]['alg-reason'] = "We say this is real."
-        i += 1
+            reason = "Few or no statistical anomalies detected."
+            
+        msg['alg'] = score
+        msg['alg-reason'] = reason
+        
     return msgs
 
 if __name__ == "__main__":
