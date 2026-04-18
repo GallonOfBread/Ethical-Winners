@@ -10,14 +10,14 @@ import alg, gui
 if 'msgs' not in st.session_state:
     msgs = []
 
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.csv'), newline='', mode='r', encoding='utf-8') as file:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '2000emails.csv'), newline='', mode='r', encoding='utf-8') as file:
         # DictReader automatically uses the first row as headers
         reader = csv.reader(file)
 
         # Access data
         x = 0
         for row in reader:
-            if 1 < x:
+            if 0 < x:
                 msgs.append({'eml':email.message_from_string(f'''From: {row[0]}
 To: {row[1]}
 Subject: {row[3]}
@@ -28,10 +28,10 @@ Date: {row[2]}
 
     # ALGORITHMIC ASSESSMENT ===========================
     # Define the path to the dataset
-    dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.csv')
+    dataset_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '2000emails.csv')
     
     # Train the statistical model (happens instantly)
-    vectorizer, model = alg.train_model(dataset_path)
+    vectorizer, model = alg.train_algoritm(dataset_path)
     
     # Calls the assess function of alg.py with the messages, vectorizer, and model as parameters
     alg.assess(msgs, vectorizer, model)

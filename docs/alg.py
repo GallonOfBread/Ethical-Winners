@@ -5,7 +5,7 @@ import email, csv, os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
-def train_model(dataset_path):
+def train_algoritm(dataset_path):
     # This trains a fast statistical model on startup
     texts = []
     labels = []
@@ -15,10 +15,12 @@ def train_model(dataset_path):
         
         x = 0
         for row in reader:
-            if x > 1: # Skip the first two rows (Dataset tag and Column Headers)
-                # Combine subject and body for training
+            # The for loop skips the first row, which is the column Headers
+            if x > 0:
+                # Combines subject and body for training
                 texts.append(str(row[3]) + " " + str(row[4]))
-                labels.append(int(row[5])) # The ground truth label
+                # The ground truth label
+                labels.append(int(row[5]))
             x += 1
             
     vectorizer = TfidfVectorizer(max_features=3000, stop_words='english')
@@ -36,10 +38,10 @@ def assess(msgs, vectorizer, model):
         body = str(eml.get_payload())
         combined_text = subject + " " + body
         
-        # Transform the single email into a statistical vector
+        # Transform a single email into a statistical vector
         X_new = vectorizer.transform([combined_text])
         
-        # Get the probability that this is phishing (Class 1)
+        # Determine the probability that this email is phishing (Class 1)
         probability = model.predict_proba(X_new)[0][1] 
         
         score = int(probability * 100)
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     # https://www.kaggle.com/datasets/naserabdullahalam/phishing-email-dataset
     msgs = []
 
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '250emails.csv'), newline='', mode='r') as file:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '2000emails.csv'), newline='', mode='r') as file:
         # DictReader automatically uses the first row as headers
         reader = csv.reader(file)
 
