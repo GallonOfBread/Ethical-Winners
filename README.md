@@ -39,5 +39,3 @@ This is a defender tool designed to analyze emails to look for social engineerin
 
 * ### 3rd Phase
   * Test our program against datasets and aim for approximately 80 percent accuracy, and create a report and presentation based on our findings.
-* ### 3rd Phase
-  * Test our program against datasets and aim for approximately 80 percent accuracy, and create a report and presentation based on our findings.
